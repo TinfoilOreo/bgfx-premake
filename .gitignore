@@ -1,2 +1,9 @@
 bin/
 obj/
+*.make
+*.mk
+Makefile
+*.sln
+*.vcxproj
+*.vcxproj.users
+*.vcxproj.filters

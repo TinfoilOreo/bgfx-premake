@@ -27,6 +27,7 @@ project "bgfx"
         "bimg/src/image_gnf.cpp",
         "bimg/src/*.h",
         "bimg/3rdparty/astc-codec/src/decoder/*.cc",
+        "bimg/3rdparty/astc-encoder/source/*.cpp",
         "bx/include/bx/*.h",
         "bx/include/bx/inline/*.inl",
         "bx/src/*.cpp"
