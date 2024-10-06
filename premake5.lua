@@ -8,7 +8,77 @@ function setBxCompat()
 	filter { "system:macosx" }
 		includedirs { "bx/include/compat/osx" }
 		buildoptions { "-x objective-c++" }
+        linkoptions {
+            "-framework Cocoa",
+            "-framework IOKit",
+            "-framework OpenGL",
+            "-framework QuartzCore",
+            "-weak_framework Metal",
+            "-weak_framework MetalKit"
+        }
 end
+
+project "bx"
+    kind "StaticLib"
+    language "C++"
+    cppdialect "C++17"
+    exceptionhandling "Off"
+    rtti "Off"
+
+    defines {
+        "__STDC_FORMAT_MACROS"
+    }
+
+    includedirs {
+        "bx/include",
+        "bx/3rdparty"
+    }
+
+    files {
+        "bx/src/amalgamated.cpp"
+    }
+
+    filter "configurations:Debug"
+        defines {
+            "BX_CONFIG_DEBUG=1"
+        }
+
+    filter "configurations:not Debug"
+        defines {
+            "BX_CONFIG_DEBUG=0"
+        }
+
+project "bimg"
+    kind "StaticLib"
+    language "C++"
+    cppdialect "C++17"
+    rtti "Off"
+    defines {
+        "__STDC_FORMAT_MACROS"
+    }
+
+    includedirs {
+        "bimg/include",
+        "bimg/3rdparty",
+        "bimg/3rdparty/tinyexr/deps/miniz",
+        "bimg/3rdparty/iqa/include",
+        "bimg/3rdparty/astc-encoder/include",
+        "bx/include"
+    }
+    
+    files {
+        "bimg/src/**.cpp"
+    }
+
+    filter "configurations:Debug"
+        defines {
+            "BX_CONFIG_DEBUG=1"
+        }
+
+    filter "configurations:not Debug"
+        defines {
+            "BX_CONFIG_DEBUG=0"
+        }
 
 project "bgfx"
     kind "StaticLib"
@@ -16,76 +86,61 @@ project "bgfx"
     cppdialect "C++17"
     exceptionhandling "Off"
     rtti "Off"
-    defines "__STDC_FORMAT_MACROS"
-    
+
+    defines {
+        "__STDC_FORMAT_MACROS"
+    }
+
+    includedirs {
+        "bx/include",
+        "bimg/include",
+        "bgfx/include",
+        "bgfx/3rdparty",
+        "bgfx/3rdparty/khronos"
+    }
+
     files {
-		"bgfx/include/bgfx/**.h",
-		"bgfx/src/*.cpp",
-		"bgfx/src/*.h",
-        "bimg/include/bimg/*.h",
-        "bimg/src/image.cpp",
-        "bimg/src/image_gnf.cpp",
-        "bimg/src/*.h",
-        "bimg/3rdparty/astc-codec/src/decoder/*.cc",
-        "bimg/3rdparty/astc-encoder/source/*.cpp",
-        "bx/include/bx/*.h",
-        "bx/include/bx/inline/*.inl",
-        "bx/src/*.cpp"
-	}
+        "bgfx/src/amalgamated.cpp"
+    }
 
-	excludes {
-		"bgfx/src/amalgamated.cpp",
-        "bx/src/amalgamated.cpp",
-        "bx/src/crtnone.cpp"
-	}
-
-	includedirs {
-		"bx/include",
-        "bx/3rdparty",
-		"bimg/include",
-        "bimg/3rdparty/astc-codec",
-        "bimg/3rdparty/astc-codec/include",
-        "bimg/3rdparty/astc-encoder/include",
-		"bgfx/include",
-		"bgfx/3rdparty",
-		"bgfx/3rdparty/directx-headers/include/directx",
-		"bgfx/3rdparty/directx-headers/include/wsl/stubs",
-		"bgfx/3rdparty/khronos"
-	}
-
-	filter "action:vs*"
-		defines "_CRT_SECURE_NO_WARNINGS"
-		excludes {
-			"bgfx/src/glcontext_glx.cpp",
-			"bgfx/src/glcontext_egl.cpp"
-		}
-	filter "system:macosx"
-		files {
-			"bgfx/src/*.mm",
-		}
-
-	setBxCompat()
-
-    filter "not configurations:Debug"
-        defines {
-            "NDEBUG",
-            "BX_CONFIG_DEBUG=0"
-        }
-        optimize "Full"
     filter "configurations:Debug"
         defines {
-            "_DEBUG",
             "BX_CONFIG_DEBUG=1"
         }
-        optimize "Debug"
-        symbols "On"
 
-    filter "platforms:x86"
-        architecture "x86"
-    filter "platforms:x86_64"
-        architecture "x86_64"
+    filter "configurations:not Debug"
+        defines {
+            "BX_CONFIG_DEBUG=0"
+        }
+    
+    filter "system:windows"
+        includedirs {
+			"bgfx/3rdparty/directx-headers/include/directx"
+		}
+
+    filter { "system:windows", "action:vs*" }
+        includedirs {
+            "bx/include/compat/msvc"
+        }
+
+    filter { "system:windows", "action:gmake" }
+        includedirs {
+            "bx/include/compat/mingw"
+        }
+
+    filter "system:linux"
+        includedirs {
+			"bgfx/3rdparty/directx-headers/include/directx",
+			"bgfx/3rdparty/directx-headers/include",
+			"bgfx/3rdparty/directx-headers/include/wsl/stubs",
+            "bx/include/compat/linux"
+		}
+
     filter "system:macosx"
-        xcodebuildsettings {
-            ["MACOSX_DEPLOYMENT_TARGET"] = "10.9",
-            ["ALWAYS_SEARCH_USER_PATHS"] = "YES",
-        };
+        includedirs {
+            "bx/include/compat/osx"
+        }
+
+        buildoptions {
+            "-x objective-c++"
+        }
